@@ -12,21 +12,21 @@ import ru.pr1nkos.taskmanager.config.JwtTokenUtil;
 import ru.pr1nkos.taskmanager.dto.request.LoginRequest;
 import ru.pr1nkos.taskmanager.dto.request.RegisterRequest;
 import ru.pr1nkos.taskmanager.entity.Member;
-import ru.pr1nkos.taskmanager.service.UserService;
+import ru.pr1nkos.taskmanager.service.MemberService;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
-public class UserController {
-    private final UserService userService;
+public class AuthController {
+    private final MemberService memberService;
     private final JwtTokenUtil jwtTokenUtil;
     private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) throws Exception {
-        Member member = userService.findByUsername(loginRequest.username());
+    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
+        Member member = memberService.findByUsername(loginRequest.username());
         Assert.notNull(member);
-        boolean isCredentialsCorrect = userService.authenticate(loginRequest);
+        boolean isCredentialsCorrect = memberService.authenticate(loginRequest);
         if (!isCredentialsCorrect) {
             return ResponseEntity.badRequest().body("Invalid username or password");
         }
@@ -41,7 +41,7 @@ public class UserController {
                 .password(password)
                 .username(registerRequest.username())
                 .build();
-        userService.save(member);
+        memberService.save(member);
         return ResponseEntity.ok("User registered successfully");
     }
 }
