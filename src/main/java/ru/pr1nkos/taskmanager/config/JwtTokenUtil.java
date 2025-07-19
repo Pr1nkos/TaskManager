@@ -3,6 +3,8 @@ package ru.pr1nkos.taskmanager.config;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -12,15 +14,24 @@ import java.util.Date;
 
 @Component
 public class JwtTokenUtil {
-    private final String jwtSecret = "hj;lskdirfghjo;sidfhgo;iupsdhfgpo;sdiufhugposiudfg";
-    private final SecretKey jwtSecretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
-    private long EXPIRATION_TIME = 864_000_000;
+    @Value("${jwt.secret}")
+    private String jwtSecret;
 
-    public String generateToken(String username) throws Exception {
+    @Value("${jwt.expiration-time}")
+    private long expirationTime;
+
+    private SecretKey jwtSecretKey;
+
+    @PostConstruct
+    public void init() {
+        this.jwtSecretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public String generateToken(String username) {
         return Jwts.builder()
                 .subject(username)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .expiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(jwtSecretKey)
                 .compact();
     }
