@@ -7,27 +7,27 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.pr1nkos.taskmanager.dto.request.LoginRequest;
 import ru.pr1nkos.taskmanager.entity.Member;
-import ru.pr1nkos.taskmanager.repository.UserRepository;
+import ru.pr1nkos.taskmanager.repository.MemberRepository;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
-    private final UserRepository userRepository;
+public class MemberService {
+    private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public void save(Member member) {
-        userRepository.save(member);
+        memberRepository.save(member);
     }
 
     @Transactional
     public Member findByUsername(String username) {
-        return userRepository.findByUsername(username).orElse(null);
+        return memberRepository.findByUsername(username).orElse(null);
     }
 
     @Transactional(readOnly = true)
     public boolean authenticate(LoginRequest loginRequest) {
-        return userRepository.findByUsername(loginRequest.username())
+        return memberRepository.findByUsername(loginRequest.username())
                 .map(member -> passwordEncoder.matches(loginRequest.password(), member.getPassword()))
                 .orElse(false);
     }
