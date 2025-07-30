@@ -1,5 +1,6 @@
 package ru.pr1nkos.taskmanager.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -9,19 +10,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import ru.pr1nkos.taskmanager.constant.TaskStatus;
 import ru.pr1nkos.taskmanager.dto.request.CreateTaskRequest;
 import ru.pr1nkos.taskmanager.dto.request.UpdateTaskRequest;
 import ru.pr1nkos.taskmanager.entity.Member;
-import ru.pr1nkos.taskmanager.entity.Project;
 import ru.pr1nkos.taskmanager.entity.Task;
-import ru.pr1nkos.taskmanager.exception.UnauthorizedTaskAccessException;
 import ru.pr1nkos.taskmanager.service.MemberService;
-import ru.pr1nkos.taskmanager.service.ProjectService;
 import ru.pr1nkos.taskmanager.service.TaskService;
-import ru.pr1nkos.taskmanager.util.ErrorResponseUtils;
-
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -30,142 +24,57 @@ import java.util.Objects;
 public class TaskController {
 
     private final MemberService memberService;
-    private final ProjectService projectService;
     private final TaskService taskService;
 
     @GetMapping
-    public ResponseEntity<Object> getTasksByProject(
+    public ResponseEntity<Page<Task>> getTasksByProject(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam Long projectId,
             Pageable pageable) {
-
         String username = userDetails.getUsername();
         Member member = memberService.findByUsername(username);
-        Project project = projectService.getProjectById(projectId);
-
-        if (project == null) {
-            return ErrorResponseUtils.notFound("Project not found");
-        }
-
-        if (!Objects.equals(project.getMemberId(), member.getId())) {
-            throw new UnauthorizedTaskAccessException("You don't have access to tasks in this project");
-        }
-
-        Page<Task> tasks = taskService.getTasks(projectId, pageable);
+        Page<Task> tasks = taskService.getTasksForUser(projectId, member.getId(), pageable);
         return ResponseEntity.ok(tasks);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getTaskById(
+    public ResponseEntity<Task> getTaskById(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long id) {
-
         String username = userDetails.getUsername();
         Member member = memberService.findByUsername(username);
-
-        Task task = taskService.getTaskById(id);
-        if (task == null) {
-            return ErrorResponseUtils.notFound("Task not found");
-        }
-
-        Project project = projectService.getProjectById(task.getProjectId());
-        if (project == null) {
-            return ErrorResponseUtils.notFound("Associated project not found");
-        }
-
-        if (!Objects.equals(project.getMemberId(), member.getId())) {
-            throw new UnauthorizedTaskAccessException("You don't have access to this task");
-        }
-
+        Task task = taskService.getTaskByIdForUser(id, member.getId());
         return ResponseEntity.ok(task);
     }
 
-
     @PostMapping
-    public ResponseEntity<Object> createTask(
+    public ResponseEntity<Task> createTask(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody CreateTaskRequest request) {
-
+            @RequestBody @Valid CreateTaskRequest request) {
         String username = userDetails.getUsername();
         Member member = memberService.findByUsername(username);
-
-        Project project = projectService.getProjectById(request.projectId());
-        if (project == null) {
-            return ErrorResponseUtils.notFound("Project not found");
-        }
-
-        if (!Objects.equals(project.getMemberId(), member.getId())) {
-            throw new UnauthorizedTaskAccessException("You can't add tasks to this project");
-        }
-
-        Task task = Task.builder()
-                .title(request.title())
-                .description(request.description())
-                .status(TaskStatus.TODO)
-                .projectId(request.projectId())
-                .memberId(member.getId())
-                .build();
-
-        taskService.saveTask(task);
+        Task task = taskService.createTaskForUser(member.getId(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(task);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Object> updateTask(
+    public ResponseEntity<Task> updateTask(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long id,
-            @RequestBody UpdateTaskRequest request) {
-
+            @RequestBody @Valid UpdateTaskRequest request) {
         String username = userDetails.getUsername();
         Member member = memberService.findByUsername(username);
-
-        Task task = taskService.getTaskById(id);
-        if (task == null) {
-            return ErrorResponseUtils.notFound("Task not found");
-        }
-
-        Project project = projectService.getProjectById(task.getProjectId());
-        if (project == null) {
-            return ErrorResponseUtils.notFound("Associated project not found");
-        }
-
-        if (!Objects.equals(project.getMemberId(), member.getId())) {
-            throw new UnauthorizedTaskAccessException("You can't modify tasks in this project");
-        }
-
-        task.setTitle(request.title());
-        task.setDescription(request.description());
-        if (request.status() != null) {
-            task.setStatus(request.status());
-        }
-
-        taskService.saveTask(task);
+        Task task = taskService.updateTaskForUser(id, member.getId(), request);
         return ResponseEntity.ok(task);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteTask(
+    public ResponseEntity<Void> deleteTask(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long id) {
-
         String username = userDetails.getUsername();
         Member member = memberService.findByUsername(username);
-
-        Task task = taskService.getTaskById(id);
-        if (task == null) {
-            return ErrorResponseUtils.notFound("Task not found");
-        }
-
-        Project project = projectService.getProjectById(task.getProjectId());
-        if (project == null) {
-            return ErrorResponseUtils.notFound("Associated project not found");
-        }
-
-        if (!Objects.equals(project.getMemberId(), member.getId())) {
-            throw new UnauthorizedTaskAccessException("You can't delete tasks from this project");
-        }
-
-        taskService.deleteTask(id);
+        taskService.deleteTaskForUser(id, member.getId());
         return ResponseEntity.noContent().build();
     }
 }

@@ -13,12 +13,10 @@ import ru.pr1nkos.taskmanager.dto.request.CreateNewProjectRequest;
 import ru.pr1nkos.taskmanager.dto.request.UpdateProjectRequest;
 import ru.pr1nkos.taskmanager.entity.Member;
 import ru.pr1nkos.taskmanager.entity.Project;
+import ru.pr1nkos.taskmanager.exception.ResourceNotFoundException;
 import ru.pr1nkos.taskmanager.exception.UnauthorizedProjectAccessException;
 import ru.pr1nkos.taskmanager.service.MemberService;
 import ru.pr1nkos.taskmanager.service.ProjectService;
-import ru.pr1nkos.taskmanager.util.ErrorResponseUtils;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -37,16 +35,16 @@ public class ProjectController {
         return ResponseEntity.ok(projectService.getProjects(member.getId(), pageable));
     }
 
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<Project> getProjectById(@PathVariable Long id,
                                                   @AuthenticationPrincipal UserDetails userDetails) {
         String username = userDetails.getUsername();
         Member member = memberService.findByUsername(username);
-        List<Project> projectList = projectService.getListOfProjects(member.getId());
-        return ResponseEntity.ok(projectList.stream()
-                .filter(project -> project.getId().equals(id))
-                .findFirst()
-                .orElse(null));
+        Project project = projectService.getProjectById(id);
+        if (project == null || !member.getId().equals(project.getMemberId())) {
+            throw new ResourceNotFoundException("Project not found with ID: " + id);
+        }
+        return ResponseEntity.ok(project);
     }
 
     @PostMapping
@@ -60,19 +58,19 @@ public class ProjectController {
                 .memberId(member.getId())
                 .build();
         projectService.saveProject(project);
-        return ResponseEntity.ok(project);
+        return ResponseEntity.status(HttpStatus.CREATED).body(project);
     }
 
-    @PutMapping("{id}")
-    public ResponseEntity<Object> updateProject(@AuthenticationPrincipal UserDetails userDetails,
-                                                @PathVariable Long id,
-                                                @RequestBody UpdateProjectRequest updateProjectRequest) {
+    @PutMapping("/{id}")
+    public ResponseEntity<Project> updateProject(@AuthenticationPrincipal UserDetails userDetails,
+                                                 @PathVariable Long id,
+                                                 @RequestBody UpdateProjectRequest updateProjectRequest) {
         String username = userDetails.getUsername();
         Member member = memberService.findByUsername(username);
         Project project = projectService.getProjectById(id);
 
-        if (project == null) {
-            return ErrorResponseUtils.notFound("Project not found");
+        if (project == null || !member.getId().equals(project.getMemberId())) {
+            throw new ResourceNotFoundException("Project not found with ID: " + id);
         }
 
         if (!member.getId().equals(project.getMemberId())) {
@@ -85,15 +83,15 @@ public class ProjectController {
         return ResponseEntity.ok(project);
     }
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<Object> deleteProjectById(@AuthenticationPrincipal UserDetails userDetails,
-                                            @PathVariable Long id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProjectById(@AuthenticationPrincipal UserDetails userDetails,
+                                                  @PathVariable Long id) {
         String username = userDetails.getUsername();
         Member member = memberService.findByUsername(username);
         Project project = projectService.getProjectById(id);
 
-        if (project == null) {
-            return ErrorResponseUtils.notFound("Project not found");
+        if (project == null || !member.getId().equals(project.getMemberId())) {
+            throw new ResourceNotFoundException("Project not found with ID: " + id);
         }
 
         if (!member.getId().equals(project.getMemberId())) {
