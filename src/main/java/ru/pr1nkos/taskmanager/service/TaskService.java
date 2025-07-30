@@ -1,41 +1,23 @@
 package ru.pr1nkos.taskmanager.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import ru.pr1nkos.taskmanager.dto.request.CreateTaskRequest;
+import ru.pr1nkos.taskmanager.dto.request.UpdateTaskRequest;
 import ru.pr1nkos.taskmanager.entity.Task;
-import ru.pr1nkos.taskmanager.repository.TaskRepository;
 
 import java.util.List;
 
-@Service
-@RequiredArgsConstructor
-public class TaskService {
-    private final TaskRepository taskRepository;
-    @Transactional(readOnly = true)
-    public Page<Task> getTasks(Long memberId, Pageable pageable) {
-        return taskRepository.findTasksByMemberId(memberId, pageable);
-    }
+public interface TaskService {
+    Page<Task> getTasks(Long projectId, Pageable pageable);
+    List<Task> getListOfTasks(Long memberId);
+    Task getTaskById(Long id);
+    void saveTask(Task task);
+    void deleteTask(Long id);
 
-    @Transactional(readOnly = true)
-    public List<Task> getListOfTasks(Long memberId) {
-        return taskRepository.findTasksByMemberId(memberId);
-    }
-
-    @Transactional(readOnly = true)
-    public Task getTaskById(Long id) {
-        return taskRepository.findTaskById(id).orElse(null);
-    }
-
-    @Transactional
-    public void saveTask(Task task) {
-        taskRepository.save(task);
-    }
-
-    @Transactional
-    public void deleteTask(Long id) {
-        taskRepository.deleteById(id);
-    }
+    Page<Task> getTasksForUser(Long projectId, Long memberId, Pageable pageable);
+    Task getTaskByIdForUser(Long taskId, Long memberId);
+    Task createTaskForUser(Long memberId, CreateTaskRequest request);
+    Task updateTaskForUser(Long taskId, Long memberId, UpdateTaskRequest request);
+    void deleteTaskForUser(Long taskId, Long memberId);
 }
