@@ -25,12 +25,6 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<Project> getListOfProjects(Long memberId) {
-        return projectRepository.findProjectsByMemberId(memberId);
-    }
-
-    @Transactional(readOnly = true)
-    @Override
     public Project getProjectById(Long id) {
         return projectRepository.findProjectById(id).orElse(null);
     }
