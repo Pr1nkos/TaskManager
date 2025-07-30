@@ -3,7 +3,6 @@ package ru.pr1nkos.taskmanager.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import org.springframework.transaction.annotation.Transactional;
 import ru.pr1nkos.taskmanager.dto.request.LoginRequest;
 import ru.pr1nkos.taskmanager.entity.Member;
