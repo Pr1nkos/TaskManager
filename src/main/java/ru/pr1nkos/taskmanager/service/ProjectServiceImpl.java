@@ -10,8 +10,6 @@ import ru.pr1nkos.taskmanager.exception.ResourceNotFoundException;
 import ru.pr1nkos.taskmanager.exception.UnauthorizedProjectAccessException;
 import ru.pr1nkos.taskmanager.repository.ProjectRepository;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class ProjectServiceImpl implements ProjectService {
@@ -27,6 +25,16 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public Project getProjectById(Long id) {
         return projectRepository.findProjectById(id).orElse(null);
+    }
+    @Transactional(readOnly = true)
+    @Override
+    public Project getProjectByName(String name) {
+        return projectRepository.findProjectByName(name).orElse(null);
+    }
+
+    @Override
+    public boolean projectExists(String name) {
+        return projectRepository.existsByName(name);
     }
 
     @Transactional(readOnly = true)

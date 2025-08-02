@@ -13,6 +13,7 @@ import ru.pr1nkos.taskmanager.dto.request.CreateNewProjectRequest;
 import ru.pr1nkos.taskmanager.dto.request.UpdateProjectRequest;
 import ru.pr1nkos.taskmanager.entity.Member;
 import ru.pr1nkos.taskmanager.entity.Project;
+import ru.pr1nkos.taskmanager.exception.DuplicateProjectNameException;
 import ru.pr1nkos.taskmanager.exception.ResourceNotFoundException;
 import ru.pr1nkos.taskmanager.exception.UnauthorizedProjectAccessException;
 import ru.pr1nkos.taskmanager.service.MemberService;
@@ -52,6 +53,10 @@ public class ProjectController {
                                                     @RequestBody CreateNewProjectRequest createNewProjectRequest) {
         String username = userDetails.getUsername();
         Member member = memberService.findByUsername(username);
+        boolean isExists = projectService.projectExists(createNewProjectRequest.name());
+        if (isExists) {
+            throw new DuplicateProjectNameException("Project is already existed with name: " + createNewProjectRequest.name());
+        }
         Project project = Project.builder()
                 .name(createNewProjectRequest.name())
                 .description(createNewProjectRequest.description())

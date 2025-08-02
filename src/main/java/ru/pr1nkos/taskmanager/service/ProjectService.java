@@ -6,6 +6,8 @@ import ru.pr1nkos.taskmanager.entity.Project;
 
 public interface ProjectService {
     Project getProjectById(Long id);
+    Project getProjectByName(String name);
+    boolean projectExists(String name);
     Page<Project> getProjects(Long memberId, Pageable pageable);
     void saveProject(Project project);
     void deleteProject(Long id);

@@ -50,5 +50,9 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("Server Error", "An unexpected error occurred"));
     }
 
-
+    @ExceptionHandler(DuplicateProjectNameException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateProjectNameException(DuplicateProjectNameException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse("Duplicate project name", ex.getMessage()));
+    }
 }
