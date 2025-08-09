@@ -12,6 +12,26 @@ spring:
         properties:
             hibernate:
                 dialect: org.hibernate.dialect.PostgreSQLDialect
-jwt:
-    secret: "hj;lskdirfghjo;sidfhgo;iupsdhfgpo;sdiufhugposiudfg"
-    expiration-time: 864000000
+    security:
+      oauth2:
+        client:
+          registration:
+            keycloak:
+              client-id: taskmanager-client
+              client-secret: wOlhKJJIdUzYGGOv6YcauXB36HDaPsqV
+              scope: openid, profile, email
+          provider:
+            keycloak:
+              issuer-uri: http://localhost:8081/realms/taskmanager-realm
+        resourceserver:
+          jwt:
+            issuer-uri: http://localhost:8081/realms/taskmanager-realm
+keycloak:
+  realm: taskmanager-realm
+  url: http://keycloak:8080/
+  client-id: taskmanager-client
+  client-secret: wOlhKJJIdUzYGGOv6YcauXB36HDaPsqV
+
+  admin-client-id: admin-cli
+  admin-username: admin
+  admin-password: admin

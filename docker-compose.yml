@@ -13,6 +13,18 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     restart: unless-stopped
 
+  keycloak:
+    image: keycloak/keycloak:latest
+    container_name: keycloak_server
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: dev-file
+    ports:
+      - "8081:8080"
+    command: start-dev
+    restart: unless-stopped
+
   springboot:
     build:
       context: .
@@ -22,6 +34,8 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/task_manager_db
       - SPRING_DATASOURCE_USERNAME=admin
       - SPRING_DATASOURCE_PASSWORD=1212
+      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/taskmanager-realm
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:8080/realms/taskmanager-realm
     ports:
       - "8080:8080"
     depends_on:

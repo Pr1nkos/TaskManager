@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import ru.pr1nkos.taskmanager.dto.request.CreateTaskRequest;
 import ru.pr1nkos.taskmanager.dto.request.UpdateTaskRequest;
@@ -27,54 +27,47 @@ public class TaskController {
     private final TaskService taskService;
 
     @GetMapping
-    public ResponseEntity<Page<Task>> getTasksByProject(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam Long projectId,
-            Pageable pageable) {
-        String username = userDetails.getUsername();
-        Member member = memberService.findByUsername(username);
+    public ResponseEntity<Page<Task>> getTasksByProject(@AuthenticationPrincipal Jwt jwt,
+                                                        @RequestParam Long projectId,
+                                                        Pageable pageable) {
+        Member member = getMemberFromJwt(jwt);
         Page<Task> tasks = taskService.getTasksForUser(projectId, member.getId(), pageable);
         return ResponseEntity.ok(tasks);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Task> getTaskById(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long id) {
-        String username = userDetails.getUsername();
-        Member member = memberService.findByUsername(username);
+    public ResponseEntity<Task> getTaskById(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
+        Member member = getMemberFromJwt(jwt);
         Task task = taskService.getTaskByIdForUser(id, member.getId());
         return ResponseEntity.ok(task);
     }
 
     @PostMapping
-    public ResponseEntity<Task> createTask(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody @Valid CreateTaskRequest request) {
-        String username = userDetails.getUsername();
-        Member member = memberService.findByUsername(username);
+    public ResponseEntity<Task> createTask(@AuthenticationPrincipal Jwt jwt,
+                                           @RequestBody @Valid CreateTaskRequest request) {
+        Member member = getMemberFromJwt(jwt);
         Task task = taskService.createTaskForUser(member.getId(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(task);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Task> updateTask(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long id,
-            @RequestBody @Valid UpdateTaskRequest request) {
-        String username = userDetails.getUsername();
-        Member member = memberService.findByUsername(username);
+    public ResponseEntity<Task> updateTask(@AuthenticationPrincipal Jwt jwt,
+                                           @PathVariable Long id,
+                                           @RequestBody @Valid UpdateTaskRequest request) {
+        Member member = getMemberFromJwt(jwt);
         Task task = taskService.updateTaskForUser(id, member.getId(), request);
         return ResponseEntity.ok(task);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTask(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long id) {
-        String username = userDetails.getUsername();
-        Member member = memberService.findByUsername(username);
+    public ResponseEntity<Void> deleteTask(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
+        Member member = getMemberFromJwt(jwt);
         taskService.deleteTaskForUser(id, member.getId());
         return ResponseEntity.noContent().build();
+    }
+
+    private Member getMemberFromJwt(Jwt jwt) {
+        String username = jwt.getClaimAsString("preferred_username");
+        return memberService.findByUsername(username);
     }
 }
