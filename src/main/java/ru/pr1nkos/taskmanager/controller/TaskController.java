@@ -22,9 +22,8 @@ import ru.pr1nkos.taskmanager.service.TaskService;
 @RequiredArgsConstructor
 @Slf4j
 public class TaskController {
-
-    private final MemberService memberService;
     private final TaskService taskService;
+    private final MemberService memberService;
 
     @GetMapping
     public ResponseEntity<Page<Task>> getTasksByProject(@AuthenticationPrincipal Jwt jwt,
@@ -47,6 +46,7 @@ public class TaskController {
                                            @RequestBody @Valid CreateTaskRequest request) {
         Member member = getMemberFromJwt(jwt);
         Task task = taskService.createTaskForUser(member.getId(), request);
+        //noinspection JvmTaintAnalysis
         return ResponseEntity.status(HttpStatus.CREATED).body(task);
     }
 
