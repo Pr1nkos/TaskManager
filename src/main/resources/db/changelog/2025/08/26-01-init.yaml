@@ -1,0 +1,154 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1756232493054-1
+      author: prink
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_comment
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: content
+                  type: VARCHAR(255)
+              - column:
+                  name: task_id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  name: updated_at
+                  type: DATETIME
+            tableName: comment
+  - changeSet:
+      id: 1756232493054-2
+      author: prink
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_member
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: username
+                  type: VARCHAR(255)
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+              - column:
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  name: updated_at
+                  type: DATETIME
+            tableName: member
+  - changeSet:
+      id: 1756232493054-3
+      author: prink
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_project
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+              - column:
+                  name: description
+                  type: VARCHAR(255)
+              - column:
+                  name: member_id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  name: updated_at
+                  type: DATETIME
+            tableName: project
+  - changeSet:
+      id: 1756232493054-4
+      author: prink
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_task
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+              - column:
+                  name: description
+                  type: VARCHAR(255)
+              - column:
+                  name: status
+                  type: SMALLINT
+              - column:
+                  name: project_id
+                  type: BIGINT
+              - column:
+                  name: member_id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: DATETIME
+              - column:
+                  name: updated_at
+                  type: DATETIME
+            tableName: task
+  - changeSet:
+      id: 1756232493054-5
+      author: prink
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - dropSequence:
+            sequenceName: comment_id_seq
+  - changeSet:
+      id: 1756232493054-6
+      author: prink
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - dropSequence:
+            sequenceName: member_id_seq
+  - changeSet:
+      id: 1756232493054-7
+      author: prink
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - dropSequence:
+            sequenceName: project_id_seq
+  - changeSet:
+      id: 1756232493054-8
+      author: prink
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - dropSequence:
+            sequenceName: task_id_seq
+

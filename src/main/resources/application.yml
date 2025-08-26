@@ -39,6 +39,3 @@ keycloak:
   admin-client-id: admin-cli
   admin-username: admin
   admin-password: admin
-logging:
-  level:
-    liquibase: debug
