@@ -14,6 +14,7 @@ import ru.pr1nkos.taskmanager.exception.ResourceNotFoundException;
 import ru.pr1nkos.taskmanager.repository.TaskRepository;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -104,5 +105,11 @@ public class TaskServiceImpl implements TaskService {
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found with ID: " + taskId));
         projectService.getProjectByIdForUser(task.getProjectId(), memberId);
         taskRepository.deleteById(taskId);
+    }
+
+    @Transactional
+    @Override
+    public Set<Long> findAssignedMemberIdsByProjectId(Long projectId) {
+        return taskRepository.findAssignedMemberIdsByProjectId(projectId);
     }
 }

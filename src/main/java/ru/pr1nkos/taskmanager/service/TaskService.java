@@ -7,6 +7,7 @@ import ru.pr1nkos.taskmanager.dto.request.UpdateTaskRequest;
 import ru.pr1nkos.taskmanager.entity.Task;
 
 import java.util.List;
+import java.util.Set;
 
 public interface TaskService {
     Page<Task> getTasks(Long projectId, Pageable pageable);
@@ -20,4 +21,5 @@ public interface TaskService {
     Task createTaskForUser(Long memberId, CreateTaskRequest request);
     Task updateTaskForUser(Long taskId, Long memberId, UpdateTaskRequest request);
     void deleteTaskForUser(Long taskId, Long memberId);
+    Set<Long> findAssignedMemberIdsByProjectId(Long projectId);
 }

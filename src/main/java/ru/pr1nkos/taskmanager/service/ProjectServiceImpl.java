@@ -1,6 +1,7 @@
 package ru.pr1nkos.taskmanager.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -10,9 +11,12 @@ import ru.pr1nkos.taskmanager.exception.ResourceNotFoundException;
 import ru.pr1nkos.taskmanager.exception.UnauthorizedProjectAccessException;
 import ru.pr1nkos.taskmanager.repository.ProjectRepository;
 
+import java.util.Set;
+
 @Service
 @RequiredArgsConstructor
 public class ProjectServiceImpl implements ProjectService {
+    private final TaskService taskService;
     private final ProjectRepository projectRepository;
 
     @Transactional(readOnly = true)
@@ -58,5 +62,10 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void deleteProject(Long id) {
         projectRepository.deleteById(id);
+    }
+
+    @Override
+    public Set<Long> getAssignedMemberIds(Long projectId) {
+        return taskService.findAssignedMemberIdsByProjectId(projectId);
     }
 }

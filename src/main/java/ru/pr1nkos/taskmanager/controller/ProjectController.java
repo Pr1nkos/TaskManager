@@ -18,6 +18,8 @@ import ru.pr1nkos.taskmanager.exception.ResourceNotFoundException;
 import ru.pr1nkos.taskmanager.service.MemberService;
 import ru.pr1nkos.taskmanager.service.ProjectService;
 
+import java.util.Set;
+
 @RestController
 @RequestMapping("/api/projects")
 @RequiredArgsConstructor
@@ -76,6 +78,16 @@ public class ProjectController {
         validateProjectAccess(id, member);
         projectService.deleteProject(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{projectId}/assigned-members")
+    public ResponseEntity<Set<Long>> getAssignedMemberIds(@PathVariable("projectId") Long projectId,
+                                                          @AuthenticationPrincipal Jwt jwt) {
+        Member member = getMemberFromJwt(jwt);
+        validateProjectAccess(projectId, member);
+
+        Set<Long> assignedMemberIds = projectService.getAssignedMemberIds(projectId);
+        return ResponseEntity.ok(assignedMemberIds);
     }
 
     private Member getMemberFromJwt(Jwt jwt) {
