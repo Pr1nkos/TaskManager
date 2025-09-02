@@ -21,4 +21,9 @@ public class MemberService {
         return memberRepository.findByUsername(username).orElse(null);
     }
 
+    @Transactional
+    public Member findById(Long memberId) {
+        return memberRepository.findById(memberId).orElse(null);
+    }
+
 }

@@ -11,16 +11,14 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import ru.pr1nkos.taskmanager.constant.TaskStatus;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Data
 @Builder
-@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Task {
+@EntityListeners(AuditingEntityListener.class)
+public class Subtask {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,11 +27,12 @@ public class Task {
     private String title;
     private String description;
     private TaskStatus status;
-    private Long projectId;
-    private Long memberId;
 
-    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Subtask> subtasks = new ArrayList<>();
+    @Column(name = "task_id")
+    private Long taskId;
+
+    @Column(name = "assigned_to_member_id")
+    private Long assignedToMemberId;
 
     @CreatedDate
     @Column(updatable = false)
@@ -41,4 +40,9 @@ public class Task {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    // Опционально: связь с Task (если нужен доступ к родительской задаче)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "task_id", insertable = false, updatable = false)
+    private Task task;
 }

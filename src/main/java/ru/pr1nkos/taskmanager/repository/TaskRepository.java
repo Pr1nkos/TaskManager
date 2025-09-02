@@ -14,9 +14,9 @@ import java.util.Set;
 
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
+    Optional<Task> findTaskById(Long id);
     Page<Task> findTasksByProjectId(Long projectId,  Pageable pageable);
     List<Task> findTasksByMemberId(Long memberId);
-    Optional<Task> findTaskById(Long id);
 
     @Query("SELECT DISTINCT t.memberId FROM Task t WHERE t.projectId = :projectId AND t.memberId IS NOT NULL")
     Set<Long> findAssignedMemberIdsByProjectId(@Param("projectId") Long projectId);

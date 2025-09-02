@@ -5,10 +5,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.pr1nkos.taskmanager.constant.ExceptionMessages;
 import ru.pr1nkos.taskmanager.constant.TaskStatus;
 import ru.pr1nkos.taskmanager.dto.request.CreateTaskRequest;
 import ru.pr1nkos.taskmanager.dto.request.UpdateTaskRequest;
+import ru.pr1nkos.taskmanager.entity.Member;
 import ru.pr1nkos.taskmanager.entity.Project;
+import ru.pr1nkos.taskmanager.entity.Subtask;
 import ru.pr1nkos.taskmanager.entity.Task;
 import ru.pr1nkos.taskmanager.exception.ResourceNotFoundException;
 import ru.pr1nkos.taskmanager.repository.TaskRepository;
@@ -19,7 +22,9 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class TaskServiceImpl implements TaskService {
+    private final MemberService memberService;
     private final TaskRepository taskRepository;
+    private final SubtaskService subtaskService;
     private final ProjectServiceImpl projectService;
 
     @Transactional(readOnly = true)
@@ -63,7 +68,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public Task getTaskByIdForUser(Long taskId, Long memberId) {
         Task task = taskRepository.findTaskById(taskId)
-                .orElseThrow(() -> new ResourceNotFoundException("Task not found with ID: " + taskId));
+                .orElseThrow(() -> new ResourceNotFoundException(ExceptionMessages.TASK_NOT_FOUND + taskId));
         projectService.getProjectByIdForUser(task.getProjectId(), memberId);
         return task;
     }
@@ -71,7 +76,10 @@ public class TaskServiceImpl implements TaskService {
     @Transactional
     @Override
     public Task createTaskForUser(Long memberId, CreateTaskRequest request) {
+        // 1. Проверяем, что пользователь имеет доступ к проекту
         Project project = projectService.getProjectByIdForUser(request.projectId(), memberId);
+
+        // 2. Создаём основную задачу
         Task task = Task.builder()
                 .title(request.title())
                 .description(request.description())
@@ -79,7 +87,31 @@ public class TaskServiceImpl implements TaskService {
                 .projectId(project.getId())
                 .memberId(memberId)
                 .build();
-        taskRepository.save(task);
+
+        taskRepository.save(task); // сохраняем, чтобы получить ID
+
+        // 3. Если указаны assignTo — создаём подзадачи
+        Set<Long> assignTo = request.assignTo();
+        if (assignTo != null && !assignTo.isEmpty()) {
+            for (Long userId : assignTo) {
+                // Проверяем, что пользователь существует
+                Member member = memberService.findById(userId);
+                if (member == null){
+                    throw new ResourceNotFoundException(ExceptionMessages.MEMBER_NOT_FOUND + userId);
+                }
+
+                Subtask subtask = Subtask.builder()
+                        .title(request.title())
+                        .description(request.description() != null ? request.description() : "No description")
+                        .taskId(task.getId())
+                        .assignedToMemberId(userId)
+                        .status(TaskStatus.TODO)
+                        .build();
+
+                subtaskService.save(subtask);
+            }
+        }
+
         return task;
     }
 
@@ -87,7 +119,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public Task updateTaskForUser(Long taskId, Long memberId, UpdateTaskRequest request) {
         Task task = taskRepository.findTaskById(taskId)
-                .orElseThrow(() -> new ResourceNotFoundException("Task not found with ID: " + taskId));
+                .orElseThrow(() -> new ResourceNotFoundException(ExceptionMessages.TASK_NOT_FOUND + taskId));
         projectService.getProjectByIdForUser(task.getProjectId(), memberId);
         task.setTitle(request.title());
         task.setDescription(request.description());
@@ -102,7 +134,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public void deleteTaskForUser(Long taskId, Long memberId) {
         Task task = taskRepository.findTaskById(taskId)
-                .orElseThrow(() -> new ResourceNotFoundException("Task not found with ID: " + taskId));
+                .orElseThrow(() -> new ResourceNotFoundException(ExceptionMessages.TASK_NOT_FOUND + taskId));
         projectService.getProjectByIdForUser(task.getProjectId(), memberId);
         taskRepository.deleteById(taskId);
     }

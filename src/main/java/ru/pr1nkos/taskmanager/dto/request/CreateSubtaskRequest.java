@@ -2,15 +2,11 @@ package ru.pr1nkos.taskmanager.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import ru.pr1nkos.taskmanager.annotation.Sanitized;
-import ru.pr1nkos.taskmanager.annotation.ValidAssignTo;
 
-import java.util.Set;
-
-public record CreateTaskRequest(
-        @NotNull(message = "Project ID cannot be null")
-        Long projectId,
+public record CreateSubtaskRequest(
 
         @NotBlank(message = "Title cannot be empty")
         @Size(max = 100, message = "Title must be less than 100 characters")
@@ -21,7 +17,11 @@ public record CreateTaskRequest(
         @Sanitized
         String description,
 
-        @Size(max = 20, message = "Cannot assign task to more than 20 users")
-        @ValidAssignTo
-        Set<Long> assignTo
+        @NotNull(message = "Assignee ID cannot be null")
+        @Positive(message = "Assignee ID must be a positive number")
+        Long assignToMemberId,
+
+        @NotNull(message = "Task ID cannot be null")
+        @Positive(message = "Task ID must be a positive number")
+        Long taskId
 ) {}
